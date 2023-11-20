@@ -1,0 +1,50 @@
+#!/bin/bash -e
+# 指定脚本使用Bash shell解释器，并且在遇到错误时退出
+
+# 打开扩展模式匹配
+shopt -s extglob
+
+# 获取脚本所在目录的绝对路径
+curdir=$(dirname "$(readlink -f "$0")")
+
+# 脚本退出时执行
+function on_exit()
+{
+    # 关闭在遇到错误时退出的选项
+    set +e
+}
+
+# 在脚本遇到错误时执行
+function on_error()
+{
+    # 关闭在遇到错误时退出的选项
+    set +e
+    echo Tests FAILED
+    exit 1
+}
+
+# 在脚本被中断时执行
+function on_interrupt()
+{
+    echo Tests INTERRUPTED
+}
+
+# 发生 ERR 信号（即命令返回非零状态码）时，执行 on_error 函数
+trap 'on_error' ERR
+# 发生 SIGINT 信号（即用户按下Ctrl+C）时，执行on_interrupt函数
+trap 'on_interrupt' SIGINT
+# 脚本退出时，执行on_exit函数
+trap 'on_exit' EXIT
+
+# 定义一个名为 run 的函数，运行测试套件
+function run()
+{
+    # 将第一个参数赋给局部变量 testexec
+    local testexec=$1
+
+    echo "Running $testexec test suite..."
+
+    # NVCV_LEAK_DETECTION=warn "$curdir/$testexec"
+    # 运行测试套件
+    $curdir/$testexec
+}

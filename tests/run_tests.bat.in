@@ -1,0 +1,45 @@
+@REM 关闭命令回显
+@echo off 
+
+@REM 开启本地变量作用域，并启用延迟变量扩展
+
+setlocal enabledelayedexpansion
+
+@REM 获取脚本所在目录的绝对路径
+
+set curdir=%~dp0@CMAKE_BUILD_TYPE@\
+
+goto:tests
+
+@REM 定义一个名为 :run 的 label，运行测试套件
+
+@REM 有多个标号时，每个标号都要有 goto 语句跳出，否则各个标号程序会连续执行
+
+:run
+    @REM 将脚本的第一个参数赋给局部变量 testexec
+
+    set testexec=%1
+
+    echo Running %testexec% test suite...
+
+    @REM set NVCV_LEAK_DETECTION=warn
+
+    @REM 运行测试套件
+    "%curdir%%testexec%"
+
+    @REM 如果命令返回非零状态码，则跳转到标签:on_error处执行
+    if errorlevel 1 goto on_error
+
+@REM 跳转到文件末尾，即退出函数
+goto:eof
+
+@REM 定义一个 :on_error 的 label，在脚本遇到错误时执行
+
+:on_error
+    echo Tests FAILED
+    @REM 以非零状态码退出脚本或函数
+    exit /b 1
+
+endlocal
+
+:tests
